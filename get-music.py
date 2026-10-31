@@ -220,7 +220,6 @@ def split_and_tag(input_file, tracks, output_dir, album_artist, album, genre, ye
             'album_artist': album_artist,      # Глобальный исполнитель
 	        'artist': album_artist, 
             'album': album,
-            'track': track_num,
             'tracknumber': track_num
         }
         if genre:
