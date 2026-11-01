@@ -155,6 +155,47 @@ def seconds_to_ffmpeg_time(seconds):
 # Основные шаги
 # ─────────────────────────────────────────────
 
+def download_cover(url, output_dir):
+    """Скачивает обложку альбома через yt-dlp."""
+    output_path = os.path.join(output_dir, 'cover')
+    
+    cmd = [
+        'yt-dlp',
+        '--skip-download',              # Не скачивать видео
+        '--write-thumbnail',            # Скачать обложку
+        '--convert-thumbnails', 'jpg',  # Конвертировать в JPG
+        '-o', output_path,              # Шаблон имени
+        url
+    ]
+    
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError:
+        print("  ✗ Ошибка при скачивании обложки через yt-dlp")
+        sys.exit(1)
+    except FileNotFoundError:
+        print("  ✗ yt-dlp не установлен. Установите его через pip или apt.")
+        sys.exit(1)
+    
+    if not os.path.exists(output_path+".jpg"):
+        print(f"  ✗ Обложка не найдена после скачивания: {output_path}")
+        sys.exit(1)
+    
+    print(f"  Скачана обложка: {output_path}")
+
+    cmd2 = ['ffmpeg', '-y',
+            '-i', f"{output_path}.jpg",
+            '-vf', "crop='min(iw,ih)':'min(iw,ih)'",
+            '-update', '1',
+            '-loglevel', 'error',
+            f"{output_path}.jpg"
+    ]
+    subprocess.run(cmd2, check=True)
+    print(f"Обложка приведена к квадратной форме: {output_path}.jpg")
+
+    return output_path
+
+
 def download_album(url, output_dir):
     """Скачивает альбом через yt-dlp."""
     #output_template = os.path.join(output_dir, '%(title)s.%(ext)s')
@@ -253,6 +294,7 @@ def split_and_tag(input_file, tracks, output_dir, album_artist, album, genre, ye
             '-ss', seconds_to_ffmpeg_time(start_sec),
             '-to', seconds_to_ffmpeg_time(end_sec),
             '-c', 'copy', 
+            '-loglevel', 'error',
         ] + meta_args + [  # Вставляем метаданные в середину команды
             '-y', 
             output_path
@@ -320,7 +362,7 @@ def download_and_tag_single(url, output_dir, performer, custom_title, date=None,
 
     # 4. Копируем из временного файла в финальный с тегами
     cmd_tag = [
-        'ffmpeg', '-i', temp_file, '-c', 'copy'
+        'ffmpeg', '-i', temp_file, '-c', 'copy', '-loglevel', 'error'
     ] + meta_args + ['-y', final_path]
     
     run_command(cmd_tag, f"Тегирование сингла: {title}")
@@ -356,6 +398,8 @@ def main():
                         help='Не удалять исходный скачанный файл')
     parser.add_argument("-y", '--year', default=None, 
                     help='Год выпуска альбома (необязательно)')
+    parser.add_argument("-c", '--cover', required=False, action='store_true', 
+                    help='Скачать обложку альбома')
     
     args = parser.parse_args()
     
@@ -388,9 +432,13 @@ def main():
         # Парсим таймкоды
         print("\n📋 Парсинг таймкодов...")
         tracks = parse_timestamps(args.timestamps)
-        
+
+        # Скачиваем обложку
+        print("\n️  Скачивание обложки...")
+        download_cover(args.url, str(output_dir))
+
         # Скачиваем альбом
-        print("\n️  Скачивание...")
+        print("\n️  Скачивание альбома...")
         downloaded_file = download_album(args.url, str(output_dir))
         
         # Нарезаем и тегируем
