@@ -2,9 +2,19 @@
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [project]
 name = "get-music"
 version = "0.1.0"
 description = "Script for downloading and slicing albums from youtube"
 requires-python = ">=3.9"
 dependencies = ["yt-dlp>=2026.10.26"]
+
+[project.scripts]
+get-music = "get_music.main:main"
+

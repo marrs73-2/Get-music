@@ -53,11 +53,11 @@ artist \ performer; title; album; genre; comment (можно вставлять 
 
 Остальное в pyproject.toml скачивается из репозитория через
 
-``` python install -e . ```
+``` pip install -e . ```
 
 ## Аргументы команды
 
-```get-music.py [опции]```
+```get-music [опции]```
 
 Основные аргументы:
 
@@ -76,4 +76,4 @@ artist \ performer; title; album; genre; comment (можно вставлять 
 
 Пример полной команды:
 
-```get-music.py -aa "Владимир Вавилов" -a " Лютневая Музыка 16 - 17 веков" -y 1970 -c --url "https://www.youtube.com/watch?v=khigl3xof7E" -t "examples/timestamps_vavilov.txt" ```
+```get-music -aa "Владимир Вавилов" -a " Лютневая Музыка 16 - 17 веков" -y 1970 -c --url "https://www.youtube.com/watch?v=khigl3xof7E" -t "examples/timestamps-vavilov.txt" ```
